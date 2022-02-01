@@ -1,0 +1,5 @@
+homepage: "https://www.termly.io"
+documentation: "https://help.termly.io/support/solutions/articles/69000800593"
+versions:
+  - sha: 5f02a788b90ae804f86b04aa24af8937e567874a # change this to the SHA number of the commit for the initial version of the template 
+    changeNotes: Initial Version
