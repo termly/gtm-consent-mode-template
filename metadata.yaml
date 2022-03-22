@@ -1,5 +1,7 @@
 homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
+  - sha: cba7f0058c6da0f718fe9f05e2e14e899c67ee2b
+    chanageNotes: Added `wait_for_update: 500` to all consent saves
   - sha: 1693464c7cda20685047dcbd11eed152d137f6ee
     changeNotes: Initial Version

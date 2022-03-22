@@ -49,6 +49,9 @@ const logToConsole = require('logToConsole');
 const setDefaultConsentState = require('setDefaultConsentState');
 const updateConsentState = require('updateConsentState');
 
+const DEFAULT_WAIT_FOR_UPDATE = 500;
+const IS_DEFAULT_STATE = 'is_default_state';
+
 const GTM_TO_TERMLY = {
   ad_storage: 'advertising',
   analytics_storage: 'analytics',
@@ -90,7 +93,7 @@ function handleInitConsent(event) {
     essential: true,
   });
 
-  setDefaultConsentState(defaultConsents);
+  saveConsentState(defaultConsents, IS_DEFAULT_STATE);
 
   return true;
 }
@@ -110,8 +113,7 @@ function handleUserPrefUpdate(event) {
 
   const gtmConsentState = convertConsent(termlyConsentSettings);
   
-  consoleLog('calling updateConsentState() with:', gtmConsentState);
-  updateConsentState(gtmConsentState);
+  saveConsentState(gtmConsentState);
 
   return true;
 }
@@ -148,6 +150,31 @@ function convertConsent(termlyConsent) {
 
 function convertValue(isConsented) {
   return ( isConsented ) ? 'granted' : 'denied';
+}
+
+function saveConsentState(state, action) {
+  const save = ( action === IS_DEFAULT_STATE ) ? setDefaultConsentState : updateConsentState;
+
+  const newState = addWaitForUpdate(state);
+
+  save(newState);
+}
+
+function addWaitForUpdate(state) {
+  const newState = {
+    wait_for_update: DEFAULT_WAIT_FOR_UPDATE,
+  };
+
+  // Good grief...no Object.assign() either??? Yer killin' me, Google.
+  Object.entries(state)
+    .forEach((entry) => {
+      const key = entry[0];
+      const value = entry[1];
+
+      newState[key] = value;
+    });
+
+  return newState;
 }
 
 
