@@ -14,7 +14,10 @@ ___INFO___
   "version": 1,
   "securityGroups": [],
   "displayName": "Termly Consent Mode",
-  "categories": ["TAG_MANAGEMENT", "UTILITY"],
+  "categories": [
+    "TAG_MANAGEMENT",
+    "UTILITY"
+  ],
   "brand": {
     "id": "termly",
     "displayName": "Termly",
@@ -45,12 +48,14 @@ const Object = require('Object');
 
 const callInWindow = require('callInWindow');
 const copyFromDataLayer = require('copyFromDataLayer');
+const localStorage = require('localStorage');
 const logToConsole = require('logToConsole');
 const setDefaultConsentState = require('setDefaultConsentState');
 const updateConsentState = require('updateConsentState');
 
 const DEFAULT_WAIT_FOR_UPDATE = 500;
 const IS_DEFAULT_STATE = 'is_default_state';
+const LOCAL_STORAGE_KEY = 'termly_gtm_template_default_consents';
 
 const GTM_TO_TERMLY = {
   ad_storage: 'advertising',
@@ -89,9 +94,7 @@ const EVENT_HANDLERS = {
 function handleInitConsent(event) {
   consoleLog('-- Handling event "' + event + '"');
 
-  const defaultConsents = convertConsent({
-    essential: true,
-  });
+  const defaultConsents = getDefaultConsents();
 
   saveConsentState(defaultConsents, IS_DEFAULT_STATE);
 
@@ -124,6 +127,16 @@ function handleForeignEvent(event) {
   return true;
 }
 
+function getDefaultConsents() {
+  const defaults = localStorage.getItem(LOCAL_STORAGE_KEY);
+
+  consoleLog('`localStorage' + LOCAL_STORAGE_KEY + '`:', defaults);
+
+  return JSON.parse(defaults) || convertConsent({
+    essential: true,
+  });
+}
+
 function consoleLog(){
   const stringArgs = arguments.map((argument) => {
     return ( typeof argument === 'string' ) ? argument : JSON.stringify(argument);
@@ -154,6 +167,8 @@ function convertValue(isConsented) {
 
 function saveConsentState(state, action) {
   const save = ( action === IS_DEFAULT_STATE ) ? setDefaultConsentState : updateConsentState;
+
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
 
   const newState = addWaitForUpdate(state);
 
@@ -546,6 +561,59 @@ ___WEB_PERMISSIONS___
                   {
                     "type": 8,
                     "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "access_local_storage",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "keys",
+          "value": {
+            "type": 2,
+            "listItem": [
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "termly_gtm_template_default_consents"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
                   },
                   {
                     "type": 8,
