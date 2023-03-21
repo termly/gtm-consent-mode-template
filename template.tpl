@@ -115,6 +115,82 @@ ___TEMPLATE_PARAMETERS___
         ],
         "defaultValue": 500,
         "valueUnit": "milliseconds"
+      },
+      {
+        "type": "GROUP",
+        "name": "Consent Defaults",
+        "groupStyle": "NO_ZIPPY",
+        "subParams": [
+          {
+            "type": "SELECT",
+            "name": "ad_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "ad_storage"
+          },
+          {
+            "type": "SELECT",
+            "name": "analytics_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "analytics_storage"
+          },
+          {
+            "type": "SELECT",
+            "name": "functionality_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "functionality_storage"
+          },
+          {
+            "type": "SELECT",
+            "name": "personalization_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "personalization_storage"
+          }
+        ],
+        "displayName": "Consent Defaults"
       }
     ]
   }
@@ -161,9 +237,15 @@ const EVENT_HANDLERS = Object.freeze({
 
 // These values come from the template fields. User-selected
 // consents will be merged atop these values and passed to the
-// {setDefault,update}ConsentState functions.
+// setDefaultConsentState functions.
 //
-const CONSENT_CONFIG = Object.freeze({
+const DEFAULT_CONSENT_CONFIG = Object.freeze({
+  ad_storage: data.ad_storage,
+  analytics_storage: data.analytics_storage,
+  functionality_storage: data.functionality_storage,
+  personalization_storage: data.personalization_storage,
+  security_storage: 'granted',
+
   wait_for_update: makeNumber(data.wait_for_update),
 });
 
@@ -261,13 +343,9 @@ function handleForeignEvent(event) {
 }
 
 function getDefaultConsents(config) {
-  const defaults = localStorage.getItem(LOCAL_STORAGE_KEY);
+  const defaults = localStorage.getItem(LOCAL_STORAGE_KEY) || '{}';
 
-  consoleLog('`localStorage' + LOCAL_STORAGE_KEY + '`:', defaults);
-
-  return merge(CONSENT_CONFIG, JSON.parse(defaults) || convertConsent({
-    essential: true,
-  }));
+  return merge(DEFAULT_CONSENT_CONFIG, JSON.parse(defaults));
 }
 
 function consoleLog(){
