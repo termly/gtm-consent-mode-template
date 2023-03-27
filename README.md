@@ -1,4 +1,4 @@
-# Termly Consent Mode
+# Termly Consent Management Platform
 
 This template enables users of Termly's Consent Management Platform (CMP) to make use of Google Tag Manager's consent configurations. 
 
