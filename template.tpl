@@ -13,7 +13,7 @@ ___INFO___
   "id": "cvt_temp_public_id",
   "version": 1,
   "securityGroups": [],
-  "displayName": "Termly Consent Mode",
+  "displayName": "Termly Consent Management Platform",
   "categories": [
     "TAG_MANAGEMENT",
     "UTILITY"
@@ -34,9 +34,165 @@ ___TEMPLATE_PARAMETERS___
 
 [
   {
-    "type": "LABEL",
-    "name": "Termly CMP installation notice",
-    "displayName": "This template requires that Termly\u0027s CMP be installed separately."
+    "type": "CHECKBOX",
+    "name": "injectsResourceBlocker",
+    "checkboxText": "Inject Termly consent management platform script tag",
+    "simpleValueType": true,
+    "defaultValue": false,
+    "alwaysInSummary": true
+  },
+  {
+    "type": "TEXT",
+    "name": "websiteUUID",
+    "displayName": "Termly Website UUID",
+    "simpleValueType": true,
+    "alwaysInSummary": true,
+    "valueValidators": [
+      {
+        "type": "NON_EMPTY"
+      }
+    ],
+    "enablingConditions": [
+      {
+        "paramName": "injectsResourceBlocker",
+        "paramValue": true,
+        "type": "EQUALS"
+      }
+    ]
+  },
+  {
+    "type": "TEXT",
+    "name": "scriptURL",
+    "displayName": "Termly CMP Script URL",
+    "simpleValueType": true,
+    "defaultValue": "https://app.termly.io/embed.min.js",
+    "enablingConditions": [
+      {
+        "paramName": "injectsResourceBlocker",
+        "paramValue": true,
+        "type": "EQUALS"
+      }
+    ],
+    "valueValidators": [
+      {
+        "type": "REGEX",
+        "args": [
+          "^https://[^/]+/embed.min.js"
+        ]
+      }
+    ],
+    "notSetText": "ERROR: no URL is provided!"
+  },
+  {
+    "type": "GROUP",
+    "name": "Advanced Consent Management Settings",
+    "displayName": "Advanced Consent Mode Settings",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
+      {
+        "type": "CHECKBOX",
+        "name": "url_passthrough",
+        "checkboxText": "URL pass-through",
+        "simpleValueType": true,
+        "defaultValue": false
+      },
+      {
+        "type": "CHECKBOX",
+        "name": "ads_data_redaction",
+        "checkboxText": "Ads data redaction",
+        "simpleValueType": true,
+        "defaultValue": false
+      },
+      {
+        "type": "TEXT",
+        "name": "wait_for_update",
+        "displayName": "Wait for update",
+        "simpleValueType": true,
+        "valueValidators": [
+          {
+            "type": "POSITIVE_NUMBER"
+          }
+        ],
+        "defaultValue": 500,
+        "valueUnit": "milliseconds"
+      },
+      {
+        "type": "GROUP",
+        "name": "Consent Defaults",
+        "groupStyle": "NO_ZIPPY",
+        "subParams": [
+          {
+            "type": "SELECT",
+            "name": "ad_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "ad_storage"
+          },
+          {
+            "type": "SELECT",
+            "name": "analytics_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "analytics_storage"
+          },
+          {
+            "type": "SELECT",
+            "name": "functionality_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "functionality_storage"
+          },
+          {
+            "type": "SELECT",
+            "name": "personalization_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "personalization_storage"
+          }
+        ],
+        "displayName": "Consent Defaults"
+      }
+    ]
   }
 ]
 
@@ -48,18 +204,23 @@ const Object = require('Object');
 
 const callInWindow = require('callInWindow');
 const copyFromDataLayer = require('copyFromDataLayer');
+const copyFromWindow = require('copyFromWindow');
 const createQueue = require('createQueue');
+const gtagSet = require('gtagSet');
+const injectScript = require('injectScript');
 const localStorage = require('localStorage');
 const logToConsole = require('logToConsole');
+const makeNumber = require('makeNumber');
 const setDefaultConsentState = require('setDefaultConsentState');
+const setInWindow = require('setInWindow');
 const updateConsentState = require('updateConsentState');
 
-const DEFAULT_WAIT_FOR_UPDATE = 500;
+const DEVELOPER_ID = 'dNzg2MD';
 const IS_DEFAULT_STATE = 'is_default_state';
 const LOCAL_STORAGE_KEY = 'termly_gtm_template_default_consents';
 const UPDATE_COMPLETE_EVENT_NAME = 'Termly.consentSaveDone';
 
-const GTM_TO_TERMLY = {
+const GTM_TO_TERMLY = Object.freeze({
   ad_storage: 'advertising',
   analytics_storage: 'analytics',
   functionality_storage: 'performance',
@@ -67,22 +228,39 @@ const GTM_TO_TERMLY = {
   security_storage: 'essential',
   social_storage: 'social_networking',
   unclassified_storage: 'unclassified',
-};
+});
 
-const EVENT_HANDLERS = {
+const EVENT_HANDLERS = Object.freeze({
   'gtm.init_consent': handleInitConsent,
   'userPrefUpdate': handleUserPrefUpdate,
-};
+});
+
+// These values come from the template fields. User-selected
+// consents will be merged atop these values and passed to the
+// setDefaultConsentState functions.
+//
+const DEFAULT_CONSENT_CONFIG = Object.freeze({
+  ad_storage: data.ad_storage,
+  analytics_storage: data.analytics_storage,
+  functionality_storage: data.functionality_storage,
+  personalization_storage: data.personalization_storage,
+  security_storage: 'granted',
+
+  wait_for_update: makeNumber(data.wait_for_update),
+});
 
 
 (function main(data) {
-  const event = copyFromDataLayer('event');
-
   consoleLog('### TEMPLATE START');
 
+  initializeCMP(data);
+  installTermlyBlocker(data);
+
+  const event = copyFromDataLayer('event');
+
   const handler = EVENT_HANDLERS[event] || handleForeignEvent;
-  
-  const result = handler(event);
+
+  const result = handler(event, data);
 
   if ( result ) {
     triggerEvent(UPDATE_COMPLETE_EVENT_NAME);
@@ -91,15 +269,48 @@ const EVENT_HANDLERS = {
   } else {
     data.gtmOnFailure();
   }
-  
+
   consoleLog('### TEMPLATE END');
 })(data);
 
-function handleInitConsent(event) {
+function initializeCMP(config) {
+  gtagSet('developer_id.' + DEVELOPER_ID, true);
+
+  gtagSet({
+    ads_data_redaction: config.ads_data_redaction,
+    url_passthrough: config.url_passthrough
+  });
+}
+
+function installTermlyBlocker(config) {
+  if ( !config.injectsResourceBlocker ) {
+    return;
+  }
+
+  consoleLog('Injecting window.TERMLY_CONFIG');
+
+  const isConfigSet = setInWindow('TERMLY_CONFIG', {
+    websiteUUID: config.websiteUUID,
+  });
+
+  if ( !isConfigSet ) {
+    const existingConfig = copyFromWindow('TERMLY_CONFIG');
+
+    consoleLog('ERROR: Could not install Termly consent management platform ' +
+               'tag because window.TERMLY_CONFIG is already set:',
+               existingConfig);
+    return;
+  }
+
+  consoleLog('Injecting script', config.scriptURL);
+
+  injectScript(config.scriptURL);
+}
+
+function handleInitConsent(event, config) {
   consoleLog('-- Handling event "' + event + '"');
 
-  const defaultConsents = getDefaultConsents();
-
+  const defaultConsents = getDefaultConsents(config);
   saveConsentState(defaultConsents, IS_DEFAULT_STATE);
 
   return true;
@@ -115,11 +326,11 @@ function handleUserPrefUpdate(event) {
 
     return false;
   }
-  
+
   consoleLog('Consent settings returned by window.Termly.getConsentState():', termlyConsentSettings);
 
   const gtmConsentState = convertConsent(termlyConsentSettings);
-  
+
   saveConsentState(gtmConsentState);
 
   return true;
@@ -131,36 +342,26 @@ function handleForeignEvent(event) {
   return true;
 }
 
-function getDefaultConsents() {
-  const defaults = localStorage.getItem(LOCAL_STORAGE_KEY);
+function getDefaultConsents(config) {
+  const defaults = localStorage.getItem(LOCAL_STORAGE_KEY) || '{}';
 
-  consoleLog('`localStorage' + LOCAL_STORAGE_KEY + '`:', defaults);
-
-  return JSON.parse(defaults) || convertConsent({
-    essential: true,
-  });
+  return merge(DEFAULT_CONSENT_CONFIG, JSON.parse(defaults));
 }
 
 function consoleLog(){
   const stringArgs = arguments.map((argument) => {
     return ( typeof argument === 'string' ) ? argument : JSON.stringify(argument);
   });
-  
+
   logToConsole('[Termly CMP] ' + stringArgs.join(' '));
 }
 
 function convertConsent(termlyConsent) {
   const consents = {};
 
-  // No spread operator, no destructuring. Thanks for bringing me
-  // back to 1999, Google.
-  Object.entries(GTM_TO_TERMLY)
-    .forEach((entry) => {
-      const gtmKey = entry[0];
-      const termlyKey = entry[1];
-
-      consents[gtmKey] = convertValue(termlyConsent[termlyKey]);
-    });
+  forEachEntry(GTM_TO_TERMLY, (gtmKey, termlyKey) => {
+    consents[gtmKey] = convertValue(termlyConsent[termlyKey]);
+  });
 
   return consents;
 }
@@ -174,26 +375,7 @@ function saveConsentState(state, action) {
 
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
 
-  const newState = addWaitForUpdate(state);
-
-  save(newState);
-}
-
-function addWaitForUpdate(state) {
-  const newState = {
-    wait_for_update: DEFAULT_WAIT_FOR_UPDATE,
-  };
-
-  // Good grief...no Object.assign() either??? Yer killin' me, Google.
-  Object.entries(state)
-    .forEach((entry) => {
-      const key = entry[0];
-      const value = entry[1];
-
-      newState[key] = value;
-    });
-
-  return newState;
+  save(state);
 }
 
 function triggerEvent(eventName) {
@@ -201,6 +383,27 @@ function triggerEvent(eventName) {
 
   dataLayerPush({
     event: eventName,
+  });
+}
+
+function merge() {
+  const obj = {};
+
+  for ( const arg of arguments ) {
+    forEachEntry(arg, (key, value) => {
+      obj[key] = value;
+    });
+  }
+
+  return obj;
+}
+
+function forEachEntry(object, visitor) {
+  // No spread operator, no destructuring. Thanks for bringing me
+  // back to 1999, Google.
+  Object.entries(object)
+    .forEach((entry) => {
+      visitor(entry[0], entry[1]);
   });
 }
 
@@ -618,6 +821,45 @@ ___WEB_PERMISSIONS___
                     "boolean": false
                   }
                 ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "TERMLY_CONFIG"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  }
+                ]
               }
             ]
           }
@@ -681,6 +923,70 @@ ___WEB_PERMISSIONS___
       "isEditedByUser": true
     },
     "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "write_data_layer",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "keyPatterns",
+          "value": {
+            "type": 2,
+            "listItem": [
+              {
+                "type": 1,
+                "string": "ads_data_redaction"
+              },
+              {
+                "type": 1,
+                "string": "developer_id.dNzg2MD"
+              },
+              {
+                "type": 1,
+                "string": "url_passthrough"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "inject_script",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "urls",
+          "value": {
+            "type": 2,
+            "listItem": [
+              {
+                "type": 1,
+                "string": "https://app.termly.io/embed.min.js"
+              },
+              {
+                "type": 1,
+                "string": "https://eks.usw2.staging.trmly.net/embed.min.js"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
   }
 ]
 
@@ -693,5 +999,3 @@ scenarios: []
 ___NOTES___
 
 Created on 11/16/2021, 11:54:14 PM
-
-

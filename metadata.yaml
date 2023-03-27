@@ -3,6 +3,9 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
+    sha: 00a43916db25cc55eeb38b1d59b10c3cc21ffb9c
+    changeNotes: "Added user-facing configuration inside GTM, other changes to bring template into compliance with the Google CoMo policies"
+  -
     sha: ef8b5b556f17248aa8fa8d52a1d3070f57942d1d
     changeNotes: "Now stores consents in localStorage for use during consent initialization when the page reloads or is revisited in the future. Also now triggering a new Termly.saveConsentDone event just before finishing a successful update."
   -
