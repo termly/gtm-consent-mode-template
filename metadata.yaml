@@ -3,6 +3,9 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
+    sha: 6cd8f93b38cd770e177e616267813c4b0ec1941b
+    changeNotes: "Incremented version number"
+  -
     sha: 00a43916db25cc55eeb38b1d59b10c3cc21ffb9c
     changeNotes: "Added user-facing configuration inside GTM, other changes to bring template into compliance with the Google CoMo policies"
   -
