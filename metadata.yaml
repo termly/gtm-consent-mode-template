@@ -3,6 +3,9 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
+    sha: d70ae441b571cedbf7a3edeafdb2a332881f92f4
+    changeNotes: "Re-export from GTM"
+  -
     sha: 6cd8f93b38cd770e177e616267813c4b0ec1941b
     changeNotes: "Incremented version number"
   -

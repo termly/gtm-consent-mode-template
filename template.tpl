@@ -11,7 +11,7 @@ ___INFO___
 {
   "type": "TAG",
   "id": "cvt_temp_public_id",
-  "version": 2,
+  "version": 1,
   "securityGroups": [],
   "displayName": "Termly Consent Management Platform",
   "categories": [
@@ -999,3 +999,5 @@ scenarios: []
 ___NOTES___
 
 Created on 11/16/2021, 11:54:14 PM
+
+
