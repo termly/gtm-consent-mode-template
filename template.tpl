@@ -188,6 +188,23 @@ ___TEMPLATE_PARAMETERS___
             "simpleValueType": true,
             "defaultValue": "denied",
             "displayName": "personalization_storage"
+          },
+          {
+            "type": "SELECT",
+            "name": "security_storage",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "security_storage"
           }
         ],
         "displayName": "Consent Defaults"
@@ -244,7 +261,7 @@ const DEFAULT_CONSENT_CONFIG = Object.freeze({
   analytics_storage: data.analytics_storage,
   functionality_storage: data.functionality_storage,
   personalization_storage: data.personalization_storage,
-  security_storage: 'granted',
+  security_storage: data.security_storage,
 
   wait_for_update: makeNumber(data.wait_for_update),
 });
