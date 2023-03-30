@@ -993,7 +993,7 @@ ___WEB_PERMISSIONS___
               },
               {
                 "type": 1,
-                "string": "https://eks.usw2.staging.trmly.net/embed.min.js"
+                "string": "https://*.trmly.net/embed.min.js"
               }
             ]
           }
