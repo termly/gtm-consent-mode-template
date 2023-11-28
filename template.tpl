@@ -306,6 +306,12 @@ function installTermlyBlocker(config) {
 
   consoleLog('Injecting window.TERMLY_CONFIG');
 
+  // The websiteUUID is for legacy URL support (embed.min.js). Even with the new
+  // URL (/resource-blocker/{{websiteUUID}}), though, this variables is still
+  // useful because it prevents us from double-injecting the script tag. If at
+  // some point in the future it's deemed safe to kill the TERMLY_CONFIG object,
+  // then I think we should just set a simple boolean value (e.g. TERMLY_INSTALLED)
+  // here instead.
   const isConfigSet = setInWindow('TERMLY_CONFIG', {
     websiteUUID: config.websiteUUID,
   });
@@ -706,6 +712,13 @@ ___WEB_PERMISSIONS___
       },
       "param": [
         {
+          "key": "allowedKeys",
+          "value": {
+            "type": 1,
+            "string": "specific"
+          }
+        },
+        {
           "key": "keyPatterns",
           "value": {
             "type": 2,
@@ -993,7 +1006,15 @@ ___WEB_PERMISSIONS___
               },
               {
                 "type": 1,
+                "string": "https://app.termly.io/resource-blocker/*"
+              },
+              {
+                "type": 1,
                 "string": "https://*.trmly.net/embed.min.js"
+              },
+              {
+                "type": 1,
+                "string": "https://*.trmly.net/resource-blocker/*"
               }
             ]
           }
