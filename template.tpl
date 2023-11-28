@@ -65,7 +65,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "scriptURL",
     "displayName": "Termly CMP Script URL",
     "simpleValueType": true,
-    "defaultValue": "https://app.termly.io/embed.min.js",
+    "defaultValue": "https://app.termly.io/resource-blocker/{{websiteUUID}}",
     "enablingConditions": [
       {
         "paramName": "injectsResourceBlocker",
