@@ -3,6 +3,9 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
+    sha: 6dab781bc27a8a4f6377b57dea358c98a3fa52b3
+    changeNotes: "Added security settings for a new URL to support TCF v2.2"
+  -
     sha: d81cc0ee703df7e203ec5fbc6cf2d746b5e0fb5f
     changeNotes: "Changed embed script pattern in template settings"
   -
