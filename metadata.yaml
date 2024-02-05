@@ -3,6 +3,9 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
+    sha: 5826cb071ffc59b8eec47b5bbadf3831471093c1
+    changeNotes: "Updated scriptURL regex"
+  -
     sha: 6dab781bc27a8a4f6377b57dea358c98a3fa52b3
     changeNotes: "Added security settings for a new URL to support TCF v2.2"
   -
