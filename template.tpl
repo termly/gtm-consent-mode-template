@@ -77,7 +77,7 @@ ___TEMPLATE_PARAMETERS___
       {
         "type": "REGEX",
         "args": [
-          "^https://[^/]+/embed.min.js"
+          "^https://[^/]+/resource-blocker/[A-Za-z0-9-]+"
         ]
       }
     ],
