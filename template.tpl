@@ -5,7 +5,6 @@ Template Gallery Developer Terms of Service available at
 https://developers.google.com/tag-manager/gallery-tos (or such other URL as
 Google may provide), as modified from time to time.
 
-
 ___INFO___
 
 {
@@ -123,6 +122,23 @@ ___TEMPLATE_PARAMETERS___
         "subParams": [
           {
             "type": "SELECT",
+            "name": "ad_personalization",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "ad_personalization"
+          },
+          {
+            "type": "SELECT",
             "name": "ad_storage",
             "selectItems": [
               {
@@ -137,6 +153,23 @@ ___TEMPLATE_PARAMETERS___
             "simpleValueType": true,
             "defaultValue": "denied",
             "displayName": "ad_storage"
+          },
+          {
+            "type": "SELECT",
+            "name": "ad_user_data",
+            "selectItems": [
+              {
+                "value": "denied",
+                "displayValue": "Denied"
+              },
+              {
+                "value": "granted",
+                "displayValue": "Granted"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "denied",
+            "displayName": "ad_user_data"
           },
           {
             "type": "SELECT",
@@ -238,7 +271,9 @@ const LOCAL_STORAGE_KEY = 'termly_gtm_template_default_consents';
 const UPDATE_COMPLETE_EVENT_NAME = 'Termly.consentSaveDone';
 
 const GTM_TO_TERMLY = Object.freeze({
+  ad_personalization: 'advertising',
   ad_storage: 'advertising',
+  ad_user_data: 'advertising',
   analytics_storage: 'analytics',
   functionality_storage: 'performance',
   personalization_storage: 'performance',
@@ -257,7 +292,9 @@ const EVENT_HANDLERS = Object.freeze({
 // setDefaultConsentState functions.
 //
 const DEFAULT_CONSENT_CONFIG = Object.freeze({
+  ad_personalization: data.ad_storage,
   ad_storage: data.ad_storage,
+  ad_user_data: data.ad_storage,
   analytics_storage: data.analytics_storage,
   functionality_storage: data.functionality_storage,
   personalization_storage: data.personalization_storage,
