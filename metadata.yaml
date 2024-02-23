@@ -3,6 +3,9 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
+    sha: ec099d589e3efdcb3f0d637237c11f1e642687d7
+    changeNotes: "Added support for ad_personalization and ad_user_data"
+  -
     sha: 5826cb071ffc59b8eec47b5bbadf3831471093c1
     changeNotes: "Updated scriptURL regex"
   -
