@@ -3,6 +3,9 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
+    sha: 3bcd7a6a128d78e72caccad46d435f45f2f44f74
+    changeNotes: "Added missing permissions for ad_personalization and ad_user_data"
+  -
     sha: ec099d589e3efdcb3f0d637237c11f1e642687d7
     changeNotes: "Added support for ad_personalization and ad_user_data"
   -
