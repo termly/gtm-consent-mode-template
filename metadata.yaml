@@ -3,9 +3,6 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
-    sha: 7759f53053044cb40df72a9760492481b981c49c
-    changeNotes: "Added support for regional consent defaults"
-  -
     sha: 3bcd7a6a128d78e72caccad46d435f45f2f44f74
     changeNotes: "Added missing permissions for ad_personalization and ad_user_data"
   -
