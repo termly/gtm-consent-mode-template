@@ -239,6 +239,43 @@ ___TEMPLATE_PARAMETERS___
             "simpleValueType": true,
             "defaultValue": "denied",
             "displayName": "security_storage"
+          },
+          {
+            "type": "PARAM_TABLE",
+            "name": "regionalDefaults",
+            "displayName": "",
+            "paramTableColumns": [
+              {
+                "param": {
+                  "type": "TEXT",
+                  "name": "region",
+                  "displayName": "Region",
+                  "simpleValueType": true,
+                  "help": "Leave blank to have consent apply to all regions"
+                },
+                "isUnique": true
+              },
+              {
+                "param": {
+                  "type": "TEXT",
+                  "name": "granted",
+                  "displayName": "Granted Consent Types",
+                  "simpleValueType": true,
+                  "help": "Comma-separated values"
+                },
+                "isUnique": false
+              },
+              {
+                "param": {
+                  "type": "TEXT",
+                  "name": "denied",
+                  "displayName": "Denied Consent Types",
+                  "simpleValueType": true,
+                  "help": "Comma-separated values"
+                },
+                "isUnique": false
+              }
+            ]
           }
         ],
         "displayName": "Consent Defaults"
@@ -371,10 +408,31 @@ function installTermlyBlocker(config) {
 function handleInitConsent(event, config) {
   consoleLog('-- Handling event "' + event + '"');
 
+  // We can't use saveConsentState() here because that function also
+  // saves the values in localStorage, but we are only storing a simple
+  // object there, which is incompatible with an array of objects. It's
+  // not at all clear from Google's documentation how this array of
+  // consents is supposed to be used other than to shuffle it off to
+  // setDefaultConsentState() and be about our business.
+  getRegionalDefaultConsents(config).forEach(setDefaultConsentState);
+
   const defaultConsents = getDefaultConsents(config);
   saveConsentState(defaultConsents, IS_DEFAULT_STATE);
 
   return true;
+}
+
+function getRegionalDefaultConsents(config) {
+  return config.regionalDefaults.map((settings) => {
+    const defaultData = parseCommandData(settings);
+
+    // This is hard-coded in the example documentation, so I'm going to blindly
+    // follow suit.
+    // See https://developers.google.com/tag-platform/tag-manager/templates/consent-apis#consent-template
+    defaultData.wait_for_update = 500;
+
+    return defaultData;
+  });
 }
 
 function handleUserPrefUpdate(event) {
@@ -466,6 +524,34 @@ function forEachEntry(object, visitor) {
     .forEach((entry) => {
       visitor(entry[0], entry[1]);
   });
+}
+
+function parseCommandData(settings) {
+  const regions = splitInput(settings.region);
+
+  const commandData = {};
+
+  if ( regions.length ) {
+    commandData.region = regions;
+  }
+
+  splitInput(settings.granted)
+    .forEach((entry) => {
+      commandData[entry] = 'granted';
+    });
+
+  splitInput(settings.denied)
+    .forEach((entry) => {
+      commandData[entry] = 'denied';
+    });
+
+  return commandData;
+}
+
+function splitInput(input) {
+  return input.split(',')
+    .map((item) => item.trim())
+    .filter((item) => !!item.length);
 }
 
 
