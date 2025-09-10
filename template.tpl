@@ -10,7 +10,7 @@ ___INFO___
 
 {
   "type": "TAG",
-  "id": "cvt_temp_public_id",
+  "id": "cvt_579RV",
   "version": 1,
   "securityGroups": [],
   "displayName": "Termly Consent Management Platform",
@@ -423,6 +423,10 @@ function handleInitConsent(event, config) {
 }
 
 function getRegionalDefaultConsents(config) {
+  if ( !config.regionalDefaults ) {
+    return [];
+  }
+
   return config.regionalDefaults.map((settings) => {
     const defaultData = parseCommandData(settings);
 
