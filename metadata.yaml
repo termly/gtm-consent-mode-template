@@ -3,6 +3,9 @@ homepage: "https://www.termly.io"
 documentation: "https://help.termly.io/support/solutions/articles/69000800593"
 versions:
   -
+    sha: 17b5a3b0e8767c884ce2fc39c4c19a55b9eb4e3f
+    changeNotes: "Fixed bug causing failure to set consents when regional consent defaults are not set"
+  -
     sha: 7759f53053044cb40df72a9760492481b981c49c
     changeNotes: "Added support for regional consent defaults"
   -
